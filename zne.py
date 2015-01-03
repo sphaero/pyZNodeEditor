@@ -212,8 +212,8 @@ class QNEMainWindow(QMainWindow):
 
 
     def onPeerExit(self, peer, name, *args, **kwargs):
-        # Unsibscribe from value changes
-        self.signal_unsubscribe(self.zocp.get_uuid(), None, peer, None)
+        # Unsubscribe from value changes
+        self.zocp.signal_unsubscribe(self.zocp.get_uuid(), None, peer, None)
 
         # Remove block
         if peer.hex in self.nodes:
