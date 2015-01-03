@@ -28,7 +28,7 @@
 from PySide.QtCore import (Qt, QObject, QEvent, QSizeF, QRectF, QPointF)
 from PySide.QtGui import (QPainter)
 from PySide.QtGui import (QApplication, QGraphicsView, QGraphicsItem,
-    QGraphicsSceneMouseEvent)
+    QGraphicsSceneMouseEvent, QRadialGradient)
 
 from qneblock import QNEBlock
 from qneport import QNEPort
@@ -39,7 +39,11 @@ class QNodesEditor(QObject):
         super(QNodesEditor, self).__init__(parent)
 
         self.scene = scene
-        self.scene.setBackgroundBrush( QApplication.palette().window() )
+        # gradient radial background center is origin
+        gradient = QRadialGradient(QPointF(0,0), 4000)
+        gradient.setColorAt(0.0, "#303022")
+        gradient.setColorAt(1.0, "#090911")
+        self.scene.setBackgroundBrush(gradient)
         self.scene.installEventFilter(self)
 
         self.view = view
