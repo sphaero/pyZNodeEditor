@@ -10,6 +10,7 @@ import zmq
 
 import logging
 import socket
+import uuid
 
 from qnodeseditor import QNodesEditor
 from qneblock import QNEBlock
@@ -299,7 +300,7 @@ class QNEMainWindow(QMainWindow):
                 port2 = connection.port1()
 
             if not port2.isOutput():
-                subscriber = [port2.block().uuid().hex, port2.portName()]
+                subscriber = [port2.block().uuid().hex, port2.portSignalId()]
                 if subscriber not in subscribers:
                     connection.delete()
                     self.logger.debug("peer removed subscription from %s on %s to %s on %s" %
@@ -307,10 +308,22 @@ class QNEMainWindow(QMainWindow):
 
         # add new connections for new subscriptions
         for subscriber in subscribers:
-            [uuid, portname] = subscriber
-            if uuid in self.nodes:
-                node = self.nodes[uuid]
-                if portname in node["ports"]:
+            [node_id, portsigid] = subscriber
+            # I have the signal ID, now I need to find the name corresponding
+            # to the portname
+            portname = None
+            print(self.zocp.peers_capabilities)
+            peer = self.zocp.peers_capabilities.get(uuid.UUID(node_id))
+            if not peer:
+                return
+            for key, val in peer.items():
+                if val.get('sig_id') == portsigid:
+                    portname = val.get('name')
+            if not portname:
+                return
+            if node_id in self.nodes:
+                node = self.nodes[node_id]
+                if portname and portname in node["ports"]:
                     port2 = node["ports"][portname]
                     if not port2.isConnected(port1):
                         # create new connection
@@ -326,9 +339,9 @@ class QNEMainWindow(QMainWindow):
 
             # if the connection could not be made yet, add it to a list of
             # pending subscriber-connections
-            if uuid not in self.pendingSubscribers:
-                self.pendingSubscribers[uuid] = []
-            self.pendingSubscribers[uuid].append([port1, portname])
+            if node_id not in self.pendingSubscribers:
+                self.pendingSubscribers[node_id] = []
+            self.pendingSubscribers[node_id].append([port1, portname])
 
 
     def updatePendingSubscribers(self, peer):
