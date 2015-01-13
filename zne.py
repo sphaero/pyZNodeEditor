@@ -165,9 +165,9 @@ class QNEMainWindow(QMainWindow):
         fromBlock = fromPort.block()
         toBlock = toPort.block()
 
-        emitter = toPort.portName()
+        emitter = toPort.portSignalId()
         emit_peer = toBlock.uuid()
-        receiver = fromPort.portName()
+        receiver = fromPort.portSignalId()
         recv_peer = fromBlock.uuid()
 
         self.zocp.signal_subscribe(recv_peer, receiver, emit_peer, emitter)
@@ -180,9 +180,9 @@ class QNEMainWindow(QMainWindow):
         fromBlock = fromPort.block()
         toBlock = toPort.block()
 
-        emitter = toPort.portName()
+        emitter = toPort.portSignalId()
         emit_peer = toBlock.uuid()
-        receiver = fromPort.portName()
+        receiver = fromPort.portSignalId()
         recv_peer = fromBlock.uuid()
 
         self.zocp.signal_unsubscribe(recv_peer, receiver, emit_peer, emitter)
@@ -259,6 +259,7 @@ class QNEMainWindow(QMainWindow):
                     hasOutput = "e" in portdata["access"]
                     port = self.nodes[peer.hex]["block"].addPort(portname, hasInput, hasOutput)
                     port.setValue(str(portdata["value"]))
+                    port.setSignalId(portdata["sig_id"])
                     self.nodes[peer.hex]["ports"][portname] = port
 
                 else:

@@ -82,6 +82,10 @@ class QNEPort(QGraphicsPathItem):
         self.label.setPos(self.radius_ + self.margin, -self.label.boundingRect().height()/2)
 
 
+    def setSignalId(self, sig_id):
+        self.sig_id = sig_id
+
+
     def setValue(self, value):
         self.value = value
         value_ = value
@@ -155,6 +159,10 @@ class QNEPort(QGraphicsPathItem):
 
     def portName(self):
         return self.name
+
+
+    def portSignalId(self):
+        return self.sig_id
 
 
     def hasInput(self):
@@ -271,3 +279,7 @@ class QNEOutputPort(QGraphicsPathItem):
 
     def portName(self):
         return self.parent.portName()
+
+
+    def portSignalId(self):
+        return self.parent.portSignalId()
