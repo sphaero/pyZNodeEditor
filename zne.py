@@ -312,43 +312,48 @@ class QNEMainWindow(QMainWindow):
             # I have the signal ID, now I need to find the name corresponding
             # to the portname
             portname = None
-            print(self.zocp.peers_capabilities)
             peer = self.zocp.peers_capabilities.get(uuid.UUID(node_id))
-            if not peer:
-                return
-            for key, val in peer.items():
-                if val.get('sig_id') == portsigid:
-                    portname = val.get('name')
-            if not portname:
-                return
-            if node_id in self.nodes:
-                node = self.nodes[node_id]
-                if portname and portname in node["ports"]:
-                    port2 = node["ports"][portname]
-                    if not port2.isConnected(port1):
-                        # create new connection
-                        connection = QNEConnection(None)
-                        connection.setPort1(port1)
-                        connection.setPort2(port2)
-                        connection.updatePosFromPorts()
-                        connection.updatePath()
-                        self.scene.addItem(connection)
-                        self.logger.debug("peer added subscription from %s on %s to %s on %s" %
-                            (port1.portName(), port1.block().name(), port2.portName(), port2.block().name()))
-                    continue
+            if peer:
+                for key, val in peer.items():
+                    if isinstance(val, dict):
+                        if val.get('sig_id') == portsigid:
+                            portname = val.get('name')
+                            break
+            if portname:
+                if node_id in self.nodes:
+                    node = self.nodes[node_id]
+                    if portname and portname in node["ports"]:
+                        port2 = node["ports"][portname]
+                        if not port2.isConnected(port1):
+                            # create new connection
+                            connection = QNEConnection(None)
+                            connection.setPort1(port1)
+                            connection.setPort2(port2)
+                            connection.updatePosFromPorts()
+                            connection.updatePath()
+                            self.scene.addItem(connection)
+                            self.logger.debug("peer added subscription from %s on %s to %s on %s" %
+                                (port1.portName(), port1.block().name(), port2.portName(), port2.block().name()))
+                        continue
 
             # if the connection could not be made yet, add it to a list of
             # pending subscriber-connections
             if node_id not in self.pendingSubscribers:
                 self.pendingSubscribers[node_id] = []
-            self.pendingSubscribers[node_id].append([port1, portname])
+            self.pendingSubscribers[node_id].append([port1, portsigid])
 
 
     def updatePendingSubscribers(self, peer):
         if peer.hex in self.pendingSubscribers:
             for subscriber in self.pendingSubscribers[peer.hex]:
-                [port1, portname] = subscriber
-                if peer.hex in self.nodes and portname in self.nodes[peer.hex]["ports"]:
+                [port1, portsigid] = subscriber
+                if peer.hex in self.nodes:
+                    # find portname
+                    portname = ""
+                    for portname in self.nodes[peer.hex]["ports"]:
+                        print(portname, self.nodes[peer.hex]["ports"][portname])
+                        if self.nodes[peer.hex]["ports"][portname].portSignalId() == portsigid:
+                            break
                     port2 = self.nodes[peer.hex]["ports"][portname]
 
                     connection = QNEConnection(None)
